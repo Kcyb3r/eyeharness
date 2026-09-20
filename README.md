@@ -1,5 +1,9 @@
 # eyeharness
 
+<p align="center">
+  <img src="assets/eyeharness-logo.svg" alt="eyeharness logo" width="180">
+</p>
+
 **An auditable computer-use harness for Ubuntu desktops and Android devices.**
 
 `eyeharness` is the control layer between an AI agent and a real computer. It
