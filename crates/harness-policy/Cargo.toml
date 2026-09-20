@@ -1,0 +1,15 @@
+[package]
+name = "harness-policy"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Policy engine and action validator — enforced outside the model"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

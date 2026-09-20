@@ -1,0 +1,12 @@
+[package]
+name = "harness-verifier"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Action verification — precondition/action/postcondition model"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }

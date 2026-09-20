@@ -1,0 +1,21 @@
+[package]
+name = "harness-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Core orchestration: Observe → State → Act → Verify → Recover"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+harness-events = { path = "../harness-events" }
+harness-state = { path = "../harness-state" }
+harness-policy = { path = "../harness-policy" }
+harness-perception = { path = "../harness-perception" }
+harness-target-resolver = { path = "../harness-target-resolver" }
+harness-verifier = { path = "../harness-verifier" }
+harness-recovery = { path = "../harness-recovery" }
+tokio = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

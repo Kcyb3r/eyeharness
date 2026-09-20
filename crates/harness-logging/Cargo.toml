@@ -1,0 +1,17 @@
+[package]
+name = "harness-logging"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Structured logging via tracing + JSONL with secret redaction"
+
+[dependencies]
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+harness-events = { path = "../harness-events" }
+harness-protocol = { path = "../harness-protocol" }

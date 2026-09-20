@@ -1,0 +1,12 @@
+[package]
+name = "harness-input"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Native input executor — SendInput/SetCursorPos on Windows, stub elsewhere"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }

@@ -1,0 +1,12 @@
+[package]
+name = "harness-recovery"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Recovery engine — re-observe, retry, re-resolve, alternative, ask agent, abort"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }

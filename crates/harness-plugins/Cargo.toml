@@ -1,0 +1,15 @@
+[package]
+name = "harness-plugins"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Plugin runtime ([plan §39, §39.1])"
+
+[dependencies]
+harness-events = { path = "../harness-events" }
+harness-protocol = { path = "../harness-protocol" }
+harness-state = { path = "../harness-state" }
+serde_json = "1"
+thiserror = { workspace = true }

@@ -1,0 +1,12 @@
+[package]
+name = "harness-perception"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Perception provider abstraction — screenshots, accessibility, DOM, OCR, vision"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }

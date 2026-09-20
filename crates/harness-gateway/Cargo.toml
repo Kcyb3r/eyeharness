@@ -1,0 +1,14 @@
+[package]
+name = "harness-gateway"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Control gateway — service API surface, session lifecycle, adapter registry"
+
+[dependencies]
+harness-core = { path = "../harness-core" }
+harness-policy = { path = "../harness-policy" }
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }

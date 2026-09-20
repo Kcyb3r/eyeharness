@@ -1,0 +1,13 @@
+[package]
+name = "harness-windows-uia"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Windows UI Automation provider (placeholder)"
+
+[dependencies]
+harness-perception = { path = "../harness-perception" }
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }

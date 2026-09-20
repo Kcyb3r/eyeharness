@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "eyeharness": {
+      "type": "local",
+      "command": [
+        "/home/arch/Music/eyeharness/target/debug/harness-mcp"
+      ],
+      "enabled": true
+    }
+  }
+}

@@ -1,0 +1,14 @@
+[package]
+name = "harness-hud"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Head-up display overlay ([plan §23])"
+
+[dependencies]
+harness-events = { path = "../harness-events" }
+harness-protocol = { path = "../harness-protocol" }
+serde = { workspace = true }
+thiserror = { workspace = true }

@@ -1,0 +1,15 @@
+[package]
+name = "harness-adb"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Android ADB perception and input backend"
+
+[dependencies]
+harness-core = { path = "../harness-core" }
+harness-perception = { path = "../harness-perception" }
+harness-protocol = { path = "../harness-protocol" }
+serde = { workspace = true }
+thiserror = { workspace = true }

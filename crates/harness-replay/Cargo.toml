@@ -1,0 +1,15 @@
+[package]
+name = "harness-replay"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Session replay — JSONL trace ingestion and playback"
+
+[dependencies]
+harness-events = { path = "../harness-events" }
+harness-protocol = { path = "../harness-protocol" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

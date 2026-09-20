@@ -1,0 +1,13 @@
+[package]
+name = "harness-events"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Central event bus feeding logger, HUD, replay, and metrics"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }
+tokio = { workspace = true }

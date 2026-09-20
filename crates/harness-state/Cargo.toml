@@ -1,0 +1,12 @@
+[package]
+name = "harness-state"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "State engine — local task-relevant desktop state to reduce model calls"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+serde = { workspace = true }

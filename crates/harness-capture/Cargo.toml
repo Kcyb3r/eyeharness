@@ -1,0 +1,12 @@
+[package]
+name = "harness-capture"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Screen capture backend — Windows Graphics Capture / DXGI, stub on other platforms"
+
+[dependencies]
+harness-protocol = { path = "../harness-protocol" }
+thiserror = { workspace = true }

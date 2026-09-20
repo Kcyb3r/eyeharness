@@ -1,0 +1,25 @@
+[package]
+name = "harness-mcp"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Model Context Protocol adapter — JSON-RPC 2.0 surface ([plan §26])"
+
+[dependencies]
+harness-core = { path = "../harness-core" }
+harness-protocol = { path = "../harness-protocol" }
+harness-events = { path = "../harness-events" }
+harness-perception = { path = "../harness-perception" }
+harness-verifier = { path = "../harness-verifier" }
+harness-input = { path = "../harness-input" }
+harness-windows-uia = { path = "../harness-windows-uia" }
+harness-adb = { path = "../harness-adb" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[[bin]]
+name = "harness-mcp"
+path = "src/main.rs"
