@@ -17,9 +17,11 @@ harness-input = { path = "../harness-input" }
 harness-windows-uia = { path = "../harness-windows-uia" }
 harness-adb = { path = "../harness-adb" }
 harness-state = { path = "../harness-state" }
+harness-logging = { path = "../harness-logging" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
+tokio = { workspace = true }
 
 [[bin]]
 name = "harness-mcp"

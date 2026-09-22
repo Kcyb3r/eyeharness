@@ -113,6 +113,14 @@ impl JsonlWriter {
             source: e,
         })
     }
+
+    /// Write a structured harness event with its canonical fields.
+    pub fn write_event(&self, event: &harness_protocol::Event) -> Result<(), LogError> {
+        self.write_line(serde_json::to_value(event).map_err(|e| LogError::Open {
+            path: PathBuf::from("<serialize>"),
+            source: std::io::Error::new(std::io::ErrorKind::InvalidData, e),
+        })?)
+    }
 }
 
 /// Recursively redact keys listed in [`DEFAULT_REDACT_KEYS`].

@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 
 use std::io::{self, BufRead, BufWriter, Write};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use harness_core::{Executor, HarnessCore};
@@ -21,23 +22,26 @@ impl Executor for NativeExecutor {
     }
 }
 
-fn make_core() -> HarnessCore {
+fn make_core() -> (HarnessCore, EventBus) {
     let mut perception = PerceptionHub::new();
     perception.register(Box::new(
         harness_windows_uia::UiaProvider::new()
             .expect("desktop perception provider construction must not fail"),
     ));
-    HarnessCore::new(
+    let bus = EventBus::new();
+    let core = HarnessCore::new(
         Session::new("s_mcp", 0),
         Arc::new(perception),
         Arc::new(NativeExecutor),
-        EventBus::new(),
-    )
+        bus.clone(),
+    );
+    (core, bus)
 }
 
 struct McpServer {
     core: HarnessCore,
     learning: Mutex<harness_state::learning::LearningStore>,
+    audit: Arc<harness_logging::JsonlWriter>,
 }
 
 impl McpServer {
@@ -46,13 +50,56 @@ impl McpServer {
             harness_state::learning::LearningStore::default_path(),
         )
         .map_err(|e| e.to_string())?;
+        let audit_path = audit_path();
+        if let Some(parent) = audit_path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        let audit =
+            Arc::new(harness_logging::JsonlWriter::create(&audit_path).map_err(|e| e.to_string())?);
+        let (core, bus) = make_core();
+        let mut events = bus.subscribe();
+        let audit_sink = Arc::clone(&audit);
+        std::thread::Builder::new()
+            .name("eyeharness-audit".into())
+            .spawn(move || {
+                let runtime = match tokio::runtime::Builder::new_current_thread()
+                    .enable_all()
+                    .build()
+                {
+                    Ok(runtime) => runtime,
+                    Err(error) => {
+                        eprintln!("failed to start audit subscriber: {error}");
+                        return;
+                    }
+                };
+                runtime.block_on(async move {
+                    while let Some(event) = events.recv().await {
+                        if let Err(error) = audit_sink.write_event(&event) {
+                            eprintln!("failed to persist audit event: {error}");
+                        }
+                    }
+                });
+            })
+            .map_err(|e| e.to_string())?;
         Ok(Self {
-            core: make_core(),
+            core,
             learning: Mutex::new(learning),
+            audit,
         })
     }
 
     fn handle(&self, line: &str) -> String {
+        let request = serde_json::from_str::<serde_json::Value>(line).unwrap_or_else(|_| {
+            serde_json::json!({
+                "method": "invalid-json",
+                "raw": line,
+            })
+        });
+        let _ = self.audit.write_line(serde_json::json!({
+            "kind": "mcp.requested",
+            "timestamp": harness_adb::now_ms(),
+            "payload": request,
+        }));
         let req: serde_json::Value = match serde_json::from_str(line) {
             Ok(r) => r,
             Err(e) => return err(0, -32700, &e.to_string()),
@@ -493,6 +540,17 @@ fn learning_lookup_key(args: &serde_json::Value) -> Option<(&str, &str, &str)> {
         args.get("application")?.as_str()?,
         args.get("task")?.as_str()?,
     ))
+}
+
+fn audit_path() -> PathBuf {
+    std::env::var_os("EYEHARNESS_AUDIT_PATH")
+        .map(PathBuf::from)
+        .or_else(|| {
+            std::env::var_os("XDG_STATE_HOME")
+                .map(PathBuf::from)
+                .map(|path| path.join("eyeharness/audit.jsonl"))
+        })
+        .unwrap_or_else(|| PathBuf::from(".eyeharness/audit.jsonl"))
 }
 
 fn main() {

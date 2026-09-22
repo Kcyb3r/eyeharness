@@ -44,6 +44,7 @@ than silently converted into clicks or key presses.
 - Verification and recovery primitives instead of success-shaped fallbacks.
 - HUD state, progress smoothing, notifications, and animation primitives.
 - JSONL logging and replay-oriented crates for auditable runtime evidence.
+- Durable redacted MCP request and harness-event audit logs.
 - Bounded self-learning profiles that record outcomes but require explicit
   user approval before a strategy becomes discoverable.
 
@@ -193,6 +194,11 @@ printf '%s\n' \
 The repository includes an `opencode.json` example that registers the local
 binary as the `eyeharness` MCP server. Update its absolute path if the
 checkout is moved.
+
+Every MCP request and core event is also written to a redacted JSONL audit
+file. Set `$EYEHARNESS_AUDIT_PATH` to choose its location, or it defaults to
+`$XDG_STATE_HOME/eyeharness/audit.jsonl` and then
+`.eyeharness/audit.jsonl`. Sensitive keys are redacted by default.
 
 ## MCP tools
 
