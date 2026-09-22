@@ -44,6 +44,8 @@ than silently converted into clicks or key presses.
 - Verification and recovery primitives instead of success-shaped fallbacks.
 - HUD state, progress smoothing, notifications, and animation primitives.
 - JSONL logging and replay-oriented crates for auditable runtime evidence.
+- Bounded self-learning profiles that record outcomes but require explicit
+  user approval before a strategy becomes discoverable.
 
 ## How desktop control works
 
@@ -213,6 +215,22 @@ Android tools include:
 - `adb_key`
 - `adb_launch`
 - `adb_current_app`
+
+Learning tools include:
+
+- `learn_record` — record a success or failure for a candidate strategy.
+- `learn_approve` — explicitly approve or revoke a strategy.
+- `learn_lookup` — return only approved, non-expired strategies.
+- `learn_export` — inspect the complete local profile.
+- `learn_reset` — delete all or profile-specific learned entries.
+
+Learning is deliberately conservative. Profiles are stored as inspectable JSON
+under `$EYEHARNESS_LEARNING_PATH`, or
+`$XDG_STATE_HOME/eyeharness/learning.json` when configured. New strategies
+start unapproved, expire after 30 days of inactivity, are capped at 512
+entries, and reject common secret-bearing fields. Learning changes preference
+and recovery suggestions; it cannot grant permissions, bypass policy, or run
+arbitrary shell commands.
 
 Example desktop observation request:
 

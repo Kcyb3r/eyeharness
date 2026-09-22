@@ -8,6 +8,8 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod learning;
+
 use harness_protocol::{Element, Observation, WindowInfo};
 
 /// The set of locally tracked state the harness caches between observations.

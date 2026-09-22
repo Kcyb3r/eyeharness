@@ -10,3 +10,5 @@ description = "State engine — local task-relevant desktop state to reduce mode
 [dependencies]
 harness-protocol = { path = "../harness-protocol" }
 serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }

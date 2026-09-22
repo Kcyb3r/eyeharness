@@ -16,6 +16,7 @@ harness-verifier = { path = "../harness-verifier" }
 harness-input = { path = "../harness-input" }
 harness-windows-uia = { path = "../harness-windows-uia" }
 harness-adb = { path = "../harness-adb" }
+harness-state = { path = "../harness-state" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }

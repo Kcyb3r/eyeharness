@@ -3,7 +3,7 @@
 #![forbid(unsafe_code)]
 
 use std::io::{self, BufRead, BufWriter, Write};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 use harness_core::{Executor, HarnessCore};
 use harness_events::EventBus;
@@ -37,11 +37,19 @@ fn make_core() -> HarnessCore {
 
 struct McpServer {
     core: HarnessCore,
+    learning: Mutex<harness_state::learning::LearningStore>,
 }
 
 impl McpServer {
-    fn new() -> Self {
-        Self { core: make_core() }
+    fn new() -> Result<Self, String> {
+        let learning = harness_state::learning::LearningStore::open(
+            harness_state::learning::LearningStore::default_path(),
+        )
+        .map_err(|e| e.to_string())?;
+        Ok(Self {
+            core: make_core(),
+            learning: Mutex::new(learning),
+        })
     }
 
     fn handle(&self, line: &str) -> String {
@@ -83,6 +91,19 @@ impl McpServer {
                             "properties": { "message": { "type": "string" } } } },
                         { "name": "verify", "description": "Verify the latest live observation.",
                           "inputSchema": { "type": "object", "properties": {} } }
+                        ,{ "name": "learn_record", "description": "Record an approved outcome for a candidate strategy. New strategies remain unapproved.",
+                          "inputSchema": { "type": "object", "required": ["profile", "application", "task", "strategy", "success"],
+                            "properties": { "profile": { "type": "string" }, "application": { "type": "string" }, "task": { "type": "string" }, "strategy": { "type": "string" }, "success": { "type": "boolean" } } } }
+                        ,{ "name": "learn_approve", "description": "Explicitly approve or revoke a learned strategy for automatic suggestions.",
+                          "inputSchema": { "type": "object", "required": ["profile", "application", "task", "strategy", "approved"],
+                            "properties": { "profile": { "type": "string" }, "application": { "type": "string" }, "task": { "type": "string" }, "strategy": { "type": "string" }, "approved": { "type": "boolean" } } } }
+                        ,{ "name": "learn_lookup", "description": "List non-expired, explicitly approved strategies for a task.",
+                          "inputSchema": { "type": "object", "required": ["profile", "application", "task"],
+                            "properties": { "profile": { "type": "string" }, "application": { "type": "string" }, "task": { "type": "string" } } } }
+                        ,{ "name": "learn_export", "description": "Export the inspectable learning profile.",
+                          "inputSchema": { "type": "object", "properties": {} } }
+                        ,{ "name": "learn_reset", "description": "Delete all learned entries or entries for one profile.",
+                          "inputSchema": { "type": "object", "properties": { "profile": { "type": "string" } } } }
                         ,{ "name": "adb_devices", "description": "List connected Android devices.",
                           "inputSchema": { "type": "object", "properties": {} } }
                         ,{ "name": "adb_screenshot", "description": "Capture a bounded Android screenshot.",
@@ -246,6 +267,87 @@ impl McpServer {
                 }
                 Err(e) => err(id, -32001, &e.to_string()),
             },
+            "learn_record" => {
+                let Some((profile, application, task, strategy)) = learning_key(&args) else {
+                    return err(
+                        id,
+                        -32602,
+                        "learn_record requires profile, application, task, and strategy",
+                    );
+                };
+                let Some(success) = args.get("success").and_then(|v| v.as_bool()) else {
+                    return err(id, -32602, "learn_record requires boolean success");
+                };
+                match self.learning.lock() {
+                    Ok(mut store) => {
+                        match store.record(profile, application, task, strategy, success) {
+                            Ok(entry) => ok(
+                                id,
+                                serde_json::json!({
+                                    "entry": entry,
+                                    "approved": false,
+                                    "message": "Recorded outcome; explicit learn_approve is required before lookup."
+                                }),
+                            ),
+                            Err(e) => err(id, -32020, &e.to_string()),
+                        }
+                    }
+                    Err(_) => err(id, -32020, "learning store lock poisoned"),
+                }
+            }
+            "learn_approve" => {
+                let Some((profile, application, task, strategy)) = learning_key(&args) else {
+                    return err(
+                        id,
+                        -32602,
+                        "learn_approve requires profile, application, task, and strategy",
+                    );
+                };
+                let Some(approved) = args.get("approved").and_then(|v| v.as_bool()) else {
+                    return err(id, -32602, "learn_approve requires boolean approved");
+                };
+                match self.learning.lock() {
+                    Ok(mut store) => {
+                        match store.approve(profile, application, task, strategy, approved) {
+                            Ok(entry) => ok(id, serde_json::json!({ "entry": entry })),
+                            Err(e) => err(id, -32020, &e.to_string()),
+                        }
+                    }
+                    Err(_) => err(id, -32020, "learning store lock poisoned"),
+                }
+            }
+            "learn_lookup" => {
+                let Some((profile, application, task)) = learning_lookup_key(&args) else {
+                    return err(
+                        id,
+                        -32602,
+                        "learn_lookup requires profile, application, and task",
+                    );
+                };
+                match self.learning.lock() {
+                    Ok(store) => ok(
+                        id,
+                        serde_json::json!({
+                            "entries": store.lookup(profile, application, task)
+                        }),
+                    ),
+                    Err(_) => err(id, -32020, "learning store lock poisoned"),
+                }
+            }
+            "learn_export" => match self.learning.lock() {
+                Ok(store) => ok(id, serde_json::json!({ "entries": store.export() })),
+                Err(_) => err(id, -32020, "learning store lock poisoned"),
+            },
+            "learn_reset" => {
+                let profile = args.get("profile").and_then(|v| v.as_str());
+                match self.learning.lock() {
+                    Ok(mut store) => match store.reset(profile) {
+                        Ok(removed) => ok(id, serde_json::json!({ "removed": removed })),
+                        Err(e) => err(id, -32020, &e.to_string()),
+                    },
+                    Err(_) => err(id, -32020, "learning store lock poisoned"),
+                }
+            }
             "adb_devices" => match harness_adb::list_devices() {
                 Ok(devices) => ok(id, serde_json::json!({ "devices": devices })),
                 Err(e) => err(id, -32010, &e.to_string()),
@@ -376,8 +478,31 @@ fn err(id: u64, code: i64, message: &str) -> String {
     .unwrap_or_else(|_| "{\"jsonrpc\":\"2.0\",\"id\":0}".into())
 }
 
+fn learning_key(args: &serde_json::Value) -> Option<(&str, &str, &str, &str)> {
+    Some((
+        args.get("profile")?.as_str()?,
+        args.get("application")?.as_str()?,
+        args.get("task")?.as_str()?,
+        args.get("strategy")?.as_str()?,
+    ))
+}
+
+fn learning_lookup_key(args: &serde_json::Value) -> Option<(&str, &str, &str)> {
+    Some((
+        args.get("profile")?.as_str()?,
+        args.get("application")?.as_str()?,
+        args.get("task")?.as_str()?,
+    ))
+}
+
 fn main() {
-    let server = McpServer::new();
+    let server = match McpServer::new() {
+        Ok(server) => server,
+        Err(error) => {
+            eprintln!("failed to initialize eyeharness: {error}");
+            std::process::exit(1);
+        }
+    };
     let stdout = io::stdout();
     let mut out = BufWriter::new(stdout.lock());
     for line in io::stdin().lock().lines() {
